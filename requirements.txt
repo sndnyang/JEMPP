@@ -1,0 +1,20 @@
+GPUtil==1.4.0
+matplotlib==3.2.0
+Pillow==7.1.0
+tensorboardX==1.6
+torch==1.3.1
+torchvision==0.4.2
+tqdm==4.43.0
+
+# inception score and FID require the old version.
+numpy==1.17.4
+scipy==0.19.1
+
+# Inception score and FID
+# tensorflow 1.12 - 1.15 should work
+# I suggest to install in conda environment
+# tensorflow-gpu==1.15.0
+tensorboard==1.15.0
+
+# for calibration
+# seaborn==0.8.1
