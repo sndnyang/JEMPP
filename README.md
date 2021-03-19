@@ -1,4 +1,4 @@
-# JEM++/PYLD - Improved Joint Energy Models and SGLD
+# JEM++: Improved Techniques for Training JEM
 
 
 
