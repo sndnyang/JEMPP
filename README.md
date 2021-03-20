@@ -1,14 +1,24 @@
 # JEM++/PYLD - Improved Joint Energy Models and SGLD
 
-
-
 Includes scripts for training JEM (Joint-Energy Model), evaluating models at various tasks, and running adversarial attacks.
 
 ## Usage
+
+### Prerequisite 
+
+model and mean/cov data in  https://1drv.ms/u/s!AgCFFlwzHuH8l0QWQ8E2aMtC0ApO?e=pE43fR
+
+1. Install from the requirements.txt, please check in details ```pip install -r requirements.txt```
+2. Download the mean/covariance data from above link, or generate from the notebook notebook/TODO.ipynb
+
+
 ### Training
-To train a model on CIFAR10 as in the paper
+
+To train a model on CIFAR10 as in the paper, please refer to scripts/cifar10.sh
+
 ```markdown
-python train_wrn_jempp.py --lr .0001 --dataset cifar10 --optimizer adam --p_x_weight 1.0 --p_y_given_x_weight 1.0 --p_x_y_weight 0.0 --sigma .03 --width 10 --depth 28 --plot_uncond --warmup_iters 1000
+python train_wrn_jempp.py --lr .0001 --dataset cifar10 --optimizer adam --p_x_weight 1.0 --p_y_given_x_weight 1.0 --p_x_y_weight 0.0 \
+       --sigma .03 --width 10 --depth 28 --plot_uncond --warmup_iters 1000 
 ```
 
 ### Evaluation
