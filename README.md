@@ -1,4 +1,4 @@
-# JEM++/PYLD - Improved Joint Energy Models and SGLD
+# JEM++: Improved Techniques for Training JEM
 
 Includes scripts for training JEM (Joint-Energy Model), evaluating models at various tasks, and running adversarial attacks.
 
