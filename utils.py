@@ -156,14 +156,12 @@ def accuracy(output, target, topk=(1,)):
         return res
 
 
-def checkpoint(f, buffer, component, tag, args, device):
+def checkpoint(f, buffer, tag, args, device):
     f.cpu()
     ckpt_dict = {
         "model_state_dict": f.state_dict(),
         "replay_buffer": buffer,
     }
-    if component is not None:
-        ckpt_dict["margin"] = component.state_dict()
     t.save(ckpt_dict, os.path.join(args.save_dir, tag))
     f.to(device)
 
