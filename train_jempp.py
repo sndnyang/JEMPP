@@ -21,9 +21,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from ExpUtils import *
-from utils import eval_classification, Hamiltonian, checkpoint
+from utils import eval_classification, Hamiltonian, checkpoint, get_data, set_bn_train, set_bn_eval, plot
 from models.jem_models import get_model_and_buffer
-from eval_wrn_jempp import cond_fid
+from eval_wrn_jempp_dev import cond_is_fid
 t.set_num_threads(2)
 t.backends.cudnn.benchmark = True
 t.backends.cudnn.enabled = True
@@ -322,9 +322,9 @@ def main(args):
                     print("Epoch {} Best Valid!: {}".format(epoch, correct))
                     checkpoint(f, replay_buffer, "best_valid_ckpt.pt", args, device)
                 if epoch % 2 == 0:
-                    inc_score, std, _ = cond_fid(f, replay_buffer, args, device, ratio=100, eval='is')
+                    inc_score, std, _ = cond_is_fid(f, replay_buffer, args, device, ratio=100, eval='is')
                     args.writer.add_scalar('IS', inc_score, epoch)
-                    _, _, fid = cond_fid(f, replay_buffer, args, device, ratio=500, eval='fid')
+                    _, _, fid = cond_is_fid(f, replay_buffer, args, device, ratio=500, eval='fid')
                     args.writer.add_scalar('FID', fid, epoch)
                     print("Epoch {} IS: {} {} FID: {}".format(epoch, inc_score, std, fid))
             f.train()
