@@ -11,7 +11,7 @@ def norm_ip(img, min, max):
     return temp
 
 
-def eval_is_fid(f, replay_buffer, args):
+def eval_fid(f, replay_buffer, args):
     from Task.inception import get_inception_score
     from Task.fid import get_fid_score
     if isinstance(replay_buffer, list):
@@ -26,8 +26,7 @@ def eval_is_fid(f, replay_buffer, args):
         n_img = norm_ip(img, -1, 1)
         new_img = n_img.cpu().numpy().transpose(1, 2, 0) * 255
         feed_imgs.append(new_img)
-        # if i > 10000:
-        #     break
+
     feed_imgs = np.stack(feed_imgs)
 
     if 'cifar100' in args.dataset:
@@ -54,13 +53,6 @@ def eval_is_fid(f, replay_buffer, args):
 
     # FID score
     # n = min(len(images), len(test_ims))
-    try:
-        fid = get_fid_score(feed_imgs, test_ims)
-        print("FID of score {}".format(fid))
-    except:
-        print("FID failed")
-        fid = -1
-    splits = max(1, len(feed_imgs) // 5000)
-    score, std = get_inception_score(feed_imgs, splits=splits)
-    print("Inception score of {} with std of {}".format(score, std))
-    return score, std, fid
+    fid = get_fid_score(feed_imgs, test_ims)
+    print("FID of score {}".format(fid))
+    return fid
