@@ -45,9 +45,9 @@ ratio >= buffer size, use all images.
 python eval_jempp.py --load_path /PATH/TO/YOUR/MODEL.pt --eval fid --model yopo --norm batch --ratio 10000
 ```
 
-The FID of  jempp_M10.pt
-ratio(number of images from each category),  FID 
-100, FID 56.5
-500, FID 34.4
-900, FID 35.7
+The FID of  jempp_M10.pt  
+ratio(number of images from each category),  FID   
+100, FID 56.5  
+500, FID 34.4  
+900, FID 35.7  
 1000, FID 36.5
