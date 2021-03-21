@@ -21,8 +21,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from ExpUtils import *
-from utils import eval_classification, Hamiltonian
+from utils import eval_classification, Hamiltonian, checkpoint
 from models.jem_models import get_model_and_buffer
+from eval_wrn_jempp import cond_fid
 t.set_num_threads(2)
 t.backends.cudnn.benchmark = True
 t.backends.cudnn.enabled = True
@@ -93,6 +94,8 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None, save=
             p = 1.0 * f.f.layer_one_out.grad
             p = p.detach()
 
+        tmp_inp = x_k.data
+        tmp_inp.requires_grad_()
         if args.sgld_lr > 0:
             # use SGLD other than PYLD
             tmp_inp = x_k + eta * args.sgld_lr
@@ -106,12 +109,10 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None, save=
 
             tmp_inp.data = tmp_inp.data + eta_step
             tmp_inp = t.clamp(tmp_inp, -1, 1)
-            # tmp_inp = tmp_inp.detach()
-            # tmp_inp.requires_grad_()
-            # tmp_inp.retain_grad()
 
         x_k.data = tmp_inp.data
-        x_k = t.clamp(x_k, -1, 1)
+        if in_steps == 0:
+            x_k = t.clamp(x_k, -1, 1)
 
         if args.sgld_std > 0.0:
             x_k.data += args.sgld_std * t.randn_like(x_k)
@@ -308,7 +309,7 @@ def main(args):
                     plot('{}/samples/x_q_y{}_{:>06d}.png'.format(args.save_dir, epoch, i), x_q_y)
 
         if epoch % args.ckpt_every == 0 and args.p_x_weight > 0:
-            checkpoint(f, replay_buffer, None, f'ckpt_{epoch}.pt', args, device)
+            checkpoint(f, replay_buffer, f'ckpt_{epoch}.pt', args, device)
 
         if epoch % args.eval_every == 0 and (args.p_y_given_x_weight > 0 or args.p_x_y_weight > 0):
             f.eval()
@@ -319,9 +320,15 @@ def main(args):
                 if correct > best_valid_acc:
                     best_valid_acc = correct
                     print("Epoch {} Best Valid!: {}".format(epoch, correct))
-                    checkpoint(f, replay_buffer, None, "best_valid_ckpt.pt", args, device)
+                    checkpoint(f, replay_buffer, "best_valid_ckpt.pt", args, device)
+                if epoch % 2 == 0:
+                    inc_score, std, _ = cond_fid(f, replay_buffer, args, device, ratio=100, eval='is')
+                    args.writer.add_scalar('IS', inc_score, epoch)
+                    _, _, fid = cond_fid(f, replay_buffer, args, device, ratio=500, eval='fid')
+                    args.writer.add_scalar('FID', fid, epoch)
+                    print("Epoch {} IS: {} {} FID: {}".format(epoch, inc_score, std, fid))
             f.train()
-        checkpoint(f, replay_buffer, None, "last_ckpt.pt", args, device)
+        checkpoint(f, replay_buffer, "last_ckpt.pt", args, device)
 
 
 if __name__ == "__main__":

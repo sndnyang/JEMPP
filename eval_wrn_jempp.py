@@ -70,12 +70,8 @@ def init_from_centers(args):
 def init_inform(args, bs):
     global conditionals
     n_ch = 3
-    if args.dataset == 'svhn':
-        size = [3, 28, 28]
-        im_sz = 28
-    else:
-        size = [3, 32, 32]
-        im_sz = 32
+    size = [3, 32, 32]
+    im_sz = 32
     new = t.zeros(bs, n_ch, im_sz, im_sz)
     for i in range(bs):
         index = np.random.randint(args.n_classes)
@@ -259,7 +255,7 @@ def best_samples(f, replay_buffer, args, device, fresh=False):
     print(replay_buffer.shape)
 
 
-def cond_is_fid(f, replay_buffer, args, device, ratio=0.1, eval='all'):
+def cond_fid(f, replay_buffer, args, device, ratio=0.1):
     n_it = replay_buffer.size(0) // 100
     all_y = []
     probs = []
@@ -293,13 +289,9 @@ def cond_is_fid(f, replay_buffer, args, device, ratio=0.1, eval='all'):
 
     replay_buffer = t.cat(new_buffer, 0)
     print(replay_buffer.shape)
-    from Task.eval_buffer import eval_is_fid
-    inc_score, std, fid = eval_is_fid(f, replay_buffer, args, eval=eval)
-    if eval in ['is', 'all']:
-        print("Inception score of {} with std of {}".format(inc_score, std))
-    if eval in ['fid', 'all']:
-        print("FID of score {}".format(fid))
-    return inc_score, std, fid
+    from Task.eval_buffer import eval_fid
+    fid = eval_fid(f, replay_buffer, args)
+    return fid
 
 
 def logp_hist(f, args, device):
@@ -538,11 +530,11 @@ def calibration(f, args, device):
     reliability_diagrams(list(pred), list(labels), list(real_scores), bin_size=0.05, title="Accuracy: %.2f%%" % (100.0 * correct), args=args)
 
 
-def acc_is_fid(f, replay_buffer, args, device):
+def acc_fid(f, replay_buffer, args, device):
     acc = test_clf(f, args, device)
-    inc_score, std, fid = cond_is_fid(f, replay_buffer, args, device, ratio=args.ratio)
-    print("All metrics {} {} {} {}".format(acc, inc_score, std, fid))
-    return acc, inc_score, std, fid
+    fid = cond_fid(f, replay_buffer, args, device, ratio=args.ratio)
+    print("All metrics {} {}".format(acc, fid))
+    return acc, fid
 
 
 def main(args):
@@ -586,11 +578,8 @@ def main(args):
     if args.eval == "best_samples":
         best_samples(f, replay_buffer, args, device, args.fresh_samples)
 
-    if args.eval == "cond_is_fid":
-        cond_is_fid(f, replay_buffer, args, device, args.fresh_samples)
-
-    if args.eval == "acc_is_fid":
-        acc_is_fid(f, replay_buffer, args, device)
+    if args.eval == "acc_fid":
+        acc_fid(f, replay_buffer, args, device)
 
     if args.eval == "uncond_samples":
         uncond_samples(f, args, device)
@@ -602,7 +591,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("LDA Energy Based Models")
     parser.add_argument("--eval", default="OOD", type=str,
-                        choices=["uncond_samples", "cond_samples", "best_samples", "logp_hist", "OOD", "test_clf", "acc_is_fid", "cond_is_fid", "cond_is", "cali"])
+                        choices=["uncond_samples", "cond_samples", "best_samples", "logp_hist", "OOD", "test_clf", "acc_fid", "cali"])
     parser.add_argument("--score_fn", default="px", type=str,
                         choices=["px", "py", "pxgrad"], help="For OODAUC, chooses what score function we use.")
     parser.add_argument("--ood_dataset", default="svhn", type=str,
@@ -618,7 +607,7 @@ if __name__ == "__main__":
     # regularization
     parser.add_argument("--sigma", type=float, default=3e-2)
     # network
-    parser.add_argument("--norm", type=str, default=None, choices=[None, "norm", "batch", "instance", "layer", "act"])
+    parser.add_argument("--norm", type=str, default="batch", choices=[None, "none", "norm", "batch", "instance", "layer", "act"])
     parser.add_argument("--init", type=str, default='i', help='r random, i inform')
     # EBM specific
     parser.add_argument("--n_steps", type=int, default=0)
@@ -628,7 +617,7 @@ if __name__ == "__main__":
     parser.add_argument("--depth", type=int, default=28)
     parser.add_argument("--uncond", action="store_true")
     parser.add_argument("--buffer_size", type=int, default=0)
-    parser.add_argument("--reinit_freq", type=float, default=.05)
+    parser.add_argument("--reinit_freq", type=float, default=.0)
     parser.add_argument("--sgld_lr", type=float, default=1.0)
     parser.add_argument("--sgld_std", type=float, default=1e-2)
 
