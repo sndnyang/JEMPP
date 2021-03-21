@@ -530,13 +530,6 @@ def calibration(f, args, device):
     reliability_diagrams(list(pred), list(labels), list(real_scores), bin_size=0.05, title="Accuracy: %.2f%%" % (100.0 * correct), args=args)
 
 
-def acc_fid(f, replay_buffer, args, device):
-    acc = test_clf(f, args, device)
-    fid = cond_fid(f, replay_buffer, args, device, ratio=args.ratio)
-    print("All metrics {} {}".format(acc, fid))
-    return acc, fid
-
-
 def main(args):
     global correct
     set_file_logger(logger, args)
@@ -575,11 +568,8 @@ def main(args):
     if args.eval == "cond_samples":
         cond_samples(f, replay_buffer, args, device, args.fresh_samples)
 
-    if args.eval == "best_samples":
-        best_samples(f, replay_buffer, args, device, args.fresh_samples)
-
-    if args.eval == "acc_fid":
-        acc_fid(f, replay_buffer, args, device)
+    if args.eval == "fid":
+        cond_fid(f, replay_buffer, args, device, ratio=args.ratio)
 
     if args.eval == "uncond_samples":
         uncond_samples(f, args, device)
@@ -591,7 +581,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("LDA Energy Based Models")
     parser.add_argument("--eval", default="OOD", type=str,
-                        choices=["uncond_samples", "cond_samples", "best_samples", "logp_hist", "OOD", "test_clf", "acc_fid", "cali"])
+                        choices=["uncond_samples", "cond_samples", "best_samples", "logp_hist", "OOD", "test_clf", "fid", "cali"])
     parser.add_argument("--score_fn", default="px", type=str,
                         choices=["px", "py", "pxgrad"], help="For OODAUC, chooses what score function we use.")
     parser.add_argument("--ood_dataset", default="svhn", type=str,
