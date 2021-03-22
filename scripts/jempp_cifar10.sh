@@ -9,7 +9,7 @@ python train_jempp.py --dataset=cifar10 \
  --norm batch \
  --print_every=100 \
  --n_epochs=150 --decay_epochs 50 100 125 \
- --n_steps=5 \
+ --n_steps=10 \
  --in_steps=5 \
  --pyld_lr=0.2 \
  --gpu-id=3
