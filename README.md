@@ -6,10 +6,10 @@
 
 model and mean/cov data in  https://1drv.ms/u/s!AgCFFlwzHuH8l0QWQ8E2aMtC0ApO?e=pE43fR
 
-Pretrained_model is the jempp_M10.pt
+Pretrained model is *jempp_M10.pt*
 
 1. Install from the requirements.txt, please check the details ```pip install -r requirements.txt```
-2. Download the mean/covariance (cifar10_mean/cov.pt) data from above link
+2. Download the mean/covariance (*cifar10_mean/cov.pt*) data from above link
 
 ### Training
 
@@ -42,12 +42,6 @@ python eval_jempp.py --load_path /PATH/TO/YOUR/MODEL.pt --eval test_clf --datase
 To evaluate the FID in the replay buffer (on CIFAR10):
 ratio >= buffer size, use all images.
 ```markdown
-python eval_jempp.py --load_path /PATH/TO/YOUR/MODEL.pt --eval fid --model yopo --norm batch --ratio 10000
+python eval_jempp.py --load_path /PATH/TO/YOUR/MODEL.pt --eval fid --model yopo --norm batch --ratio 10000  
+# jempp_M10.pt's FID is 36.5 
 ```
-
-The FID of  jempp_M10.pt  
-ratio(number of images from each category),  FID   
-100, FID 56.5  
-500, FID 34.4  
-900, FID 35.7  
-1000, FID 36.5
