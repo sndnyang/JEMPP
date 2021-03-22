@@ -96,8 +96,11 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None, save=
         tmp_inp = x_k.data
         tmp_inp.requires_grad_()
         if args.sgld_lr > 0:
-            # use SGLD other than PYLD
-            tmp_inp = x_k + eta * args.sgld_lr
+            # if in_steps == 0: use SGLD other than PYLD
+            # if in_steps != 0: combine outter and inner gradients
+            # default 0
+            tmp_inp = x_k + t.clamp(eta, -eps, eps) * args.sgld_lr
+            tmp_inp = t.clamp(tmp_inp, -1, 1)
 
         for i in range(in_steps):
 
@@ -110,8 +113,6 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None, save=
             tmp_inp = t.clamp(tmp_inp, -1, 1)
 
         x_k.data = tmp_inp.data
-        if in_steps == 0:
-            x_k = t.clamp(x_k, -1, 1)
 
         if args.sgld_std > 0.0:
             x_k.data += args.sgld_std * t.randn_like(x_k)
@@ -363,10 +364,10 @@ if __name__ == "__main__":
     parser.add_argument("--buffer_size", type=int, default=10000)
     parser.add_argument("--reinit_freq", type=float, default=0.05)
 
-    #
-    parser.add_argument("--sgld_lr", type=float, default=1.0)
+    # SGLD or PYLD
+    parser.add_argument("--sgld_lr", type=float, default=0.0)
     parser.add_argument("--sgld_std", type=float, default=0)
-    parser.add_argument("--pyld_lr", type=float, default=0.01)
+    parser.add_argument("--pyld_lr", type=float, default=0.2)
     # logging + evaluation
     parser.add_argument("--save_dir", type=str, default='./experiment')
     parser.add_argument("--dir_path", type=str, default='./experiment')
