@@ -45,3 +45,16 @@ ratio >= buffer size, use all images.
 python eval_jempp.py --load_path /PATH/TO/YOUR/MODEL.pt --eval fid --model yopo --norm batch --ratio 10000  
 # jempp_M10.pt's FID is 36.5 
 ```
+
+# Citation
+
+If you found this work useful and used it on your own research, please concider citing this paper.
+```
+@article{yang2021jempp,
+    title={JEM++: Improved Techniques for Training JEM},
+    author={Xiulong Yang and Shihao Ji},
+    journal={International Conference on Computer Vision (ICCV)},
+    month={Oct.},
+    year={2021}
+}
+```
