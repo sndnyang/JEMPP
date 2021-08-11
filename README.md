@@ -46,7 +46,7 @@ python eval_jempp.py --load_path /PATH/TO/YOUR/MODEL.pt --eval fid --model yopo 
 # jempp_M10.pt's FID is 36.5 
 ```
 
-# Citation
+## Citation
 
 If you found this work useful and used it on your own research, please concider citing this paper.
 ```
