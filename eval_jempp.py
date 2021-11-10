@@ -102,55 +102,72 @@ def sample_p_0(device, replay_buffer, bs, y=None):
     return samples.to(device), inds
 
 
-def sample_q(args, device, f, replay_buffer, y=None, i=0):
+def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None):
     """this func takes in replay_buffer now so we have the option to sample from
     scratch (i.e. replay_buffer==[]).  See test_wrn_ebm.py for example.
     """
+
     # f.eval()
     # get batch size
     bs = args.batch_size if y is None else y.size(0)
     # generate initial samples and buffer inds of those samples (if buffer is used)
-    init_sample, buffer_inds = sample_p_0(device, replay_buffer, bs=bs, y=y)
-    x_k = t.autograd.Variable(init_sample, requires_grad=True)
-    x_k = x_k.to(device)
+    init_sample, buffer_inds = sample_p_0(replay_buffer, bs=bs, y=y)
+    x_k = t.autograd.Variable(init_sample, requires_grad=True).to(args.device)
     # sgld
-    hist = []
-    in_steps = args.in_steps
     if args.in_steps > 0:
         Hamiltonian_func = Hamiltonian(f.f.layer_one)
-    if args.in_lr <= 0:
-        in_steps = 0
-    for k in range(args.n_steps):
-        e_x = f(x_k, y=y).sum()
-        hist.append(-e_x.item() / bs)
+
+    eps = 1
+    for it in range(n_steps):
+        energies, h, _ = f(x_k, y=y)
+        e_x = energies.sum()
+        # wgrad = f.f.conv1.weight.grad
         eta = t.autograd.grad(e_x, [x_k], retain_graph=True)[0]
+        # e_x.backward(retain_graph=True)
+        # eta = x_k.grad.detach()
+        # f.f.conv1.weight.grad = wgrad
 
         if in_steps > 0:
             p = 1.0 * f.f.layer_one_out.grad
             p = p.detach()
 
-        if in_steps > 0:
+        tmp_inp = x_k.data
+        tmp_inp.requires_grad_()
+        if args.sgld_lr > 0:
+            # if in_steps == 0: use SGLD other than PYLD
+            # if in_steps != 0: combine outter and inner gradients
+            # default 0
+            if eps > 0:
+                eta = t.clamp(eta, -eps, eps)
             tmp_inp = x_k + eta * args.sgld_lr
-        else:
-            tmp_inp = x_k
+            if eps > 0:
+                tmp_inp = t.clamp(tmp_inp, -1, 1)
 
         for i in range(in_steps):
+
             H = Hamiltonian_func(tmp_inp, p)
+
             eta_grad = t.autograd.grad(H, [tmp_inp], only_inputs=True, retain_graph=True)[0]
-            eta_step = eta_grad * args.in_lr
-            tmp_inp += eta_step
-            tmp_inp = t.clamp(tmp_inp, -1, 1)
+            if eps > 0:
+                eta_step = t.clamp(eta_grad, -eps, eps)
+            else:
+                eta_step = eta_grad * args.pyld_lr
+
+            tmp_inp.data = tmp_inp.data + eta_step
+            if eps > 0:
+                tmp_inp = t.clamp(tmp_inp, -1, 1)
 
         x_k.data = tmp_inp.data
-        x_k = t.clamp(x_k, -1, 1)
+
         if args.sgld_std > 0.0:
             x_k.data += args.sgld_std * t.randn_like(x_k)
+
     f.train()
     final_samples = x_k.detach()
     # update replay buffer
     if len(replay_buffer) > 0:
         replay_buffer[buffer_inds] = final_samples.cpu()
-    return final_samples, hist
+    return final_samples
 
 
 def uncond_samples(f, args, device, save=True):
@@ -161,7 +178,7 @@ def uncond_samples(f, args, device, save=True):
     else:
         replay_buffer = t.FloatTensor(args.buffer_size, 3, 32, 32).uniform_(-1, 1)
     for i in range(args.n_sample_steps):
-        samples, hist = sample_q(args, device, f, replay_buffer, i=i)
+        samples = sample_q(args, device, f, replay_buffer, i=i)
         if i % args.print_every == 0 and save:
             plot('{}/samples_{}.png'.format(args.save_dir, i), samples)
         print(i)
