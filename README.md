@@ -1,5 +1,7 @@
 # JEM++: Improved Techniques for Training JEM
 
+Official code for the paper [JEM++: Improved Techniques for Training JEM](https://arxiv.org/abs/2109.09032)
+
 ## Usage
 
 ### Prerequisite 
