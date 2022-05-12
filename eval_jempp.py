@@ -111,7 +111,7 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None):
     # get batch size
     bs = args.batch_size if y is None else y.size(0)
     # generate initial samples and buffer inds of those samples (if buffer is used)
-    init_sample, buffer_inds = sample_p_0(replay_buffer, bs=bs, y=y)
+    init_sample, buffer_inds = sample_p_0(device, replay_buffer, bs=bs, y=y)
     x_k = t.autograd.Variable(init_sample, requires_grad=True).to(args.device)
     # sgld
     if args.in_steps > 0:
@@ -178,7 +178,7 @@ def uncond_samples(f, args, device, save=True):
     else:
         replay_buffer = t.FloatTensor(args.buffer_size, 3, 32, 32).uniform_(-1, 1)
     for i in range(args.n_sample_steps):
-        samples = sample_q(args, device, f, replay_buffer, i=i)
+        samples = sample_q(f, replay_buffer, y=None, n_steps=args.n_steps, in_steps=args.in_steps, args=args)
         if i % args.print_every == 0 and save:
             plot('{}/samples_{}.png'.format(args.save_dir, i), samples)
         print(i)
