@@ -111,7 +111,7 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None):
     # get batch size
     bs = args.batch_size if y is None else y.size(0)
     # generate initial samples and buffer inds of those samples (if buffer is used)
-    init_sample, buffer_inds = sample_p_0(device, replay_buffer, bs=bs, y=y)
+    init_sample, buffer_inds = sample_p_0(args.device, replay_buffer, bs=bs, y=y)
     x_k = t.autograd.Variable(init_sample, requires_grad=True).to(args.device)
     # sgld
     if args.in_steps > 0:
@@ -119,7 +119,7 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None):
 
     eps = 1
     for it in range(n_steps):
-        energies, h, _ = f(x_k, y=y)
+        energies = f(x_k, y=y)
         e_x = energies.sum()
         # wgrad = f.f.conv1.weight.grad
         eta = t.autograd.grad(e_x, [x_k], retain_graph=True)[0]
