@@ -66,7 +66,7 @@ https://user-images.githubusercontent.com/2310591/141198289-4695fa50-9c20-4d9c-b
 
 ## Citation
 
-If you found this work useful and used it on your own research, please concider citing this paper.
+If you found this work useful and used it in your research, please consider citing this paper.
 ```
 @article{yang2021jempp,
     title={JEM++: Improved Techniques for Training JEM},
